@@ -1,0 +1,20 @@
+spring:
+  batch:
+    job:
+      enabled: false #자동 실행 비활성화
+---
+spring:
+  config:
+    activate:
+      on-profile: 'db-dev'
+app:
+  scheduling:
+    enable: true
+---
+spring:
+  config:
+    activate:
+      on-profile: 'test'
+app:
+  scheduling:
+    enable: false

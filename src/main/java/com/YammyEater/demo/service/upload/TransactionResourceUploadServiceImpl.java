@@ -1,5 +1,6 @@
 package com.YammyEater.demo.service.upload;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,19 @@ public class TransactionResourceUploadServiceImpl implements TransactionResource
                     @Override
                     public void afterCommit() {
                         resourceUploadService.deleteResourceAsync(key);
+                    }
+                }
+        );
+    }
+
+    @Override
+    @Transactional
+    public void deleteResourcesAsyncAfterCommit(List<String> keys) {
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        resourceUploadService.deleteResourcesAsync(keys);
                     }
                 }
         );

@@ -1,3 +1,18 @@
+#공통 설정
+resource:
+  temp-resource:
+    #임시 자원 유효 시간(분)
+    effective-minute: ${TEMP_RESOURCE_EFFECTIVE_MINUTE}
+    batch:
+      #임시 자원 삭제 스케쥴러 고정 레이트(ms)
+      clear-scheduler-cron: ${TEMP_RESOURCE_CLEAR_SCHEDULER_CRON}
+      #임시 자원 삭제 배치 job name
+      clear-job-name: CLEAR_TEMP_RESOURCE
+      #임시 자원 삭제 배치 step name
+      clear-step-name: CLEAR_TEMP_RESOURCE
+      #임시 자원 삭제 배치 chunk size
+      clear-chunk-size: 10
+---
 #local resource upload server 설정
 spring:
   config:
