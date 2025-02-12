@@ -13,9 +13,14 @@ spring:
         - db-prod
         - db-mysql
         - upload-aws_s3
+      test:
+        - db-dev
+        - db-test-mysql
+        - upload-aws_s3
     include:
       - db
       - upload
+      - batch
 
   mail:
     host: smtp.gmail.com
@@ -47,6 +52,9 @@ spring:
             client-id: ${OAUTH_GOOGLE_ID}
             client-secret: ${OAUTH_GOOGLE_SECRET}
             scope: profile, email
+
+
+
 user:
   join:
     verification_code_expire_second: 300
