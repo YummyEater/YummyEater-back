@@ -2,21 +2,13 @@ package com.YammyEater.demo.service.upload;
 
 import com.YammyEater.demo.constant.error.ErrorCode;
 import com.YammyEater.demo.domain.upload.TempResource;
-import com.YammyEater.demo.exception.upload.ResourceDownloadException;
 import com.YammyEater.demo.exception.upload.ResourceUploadException;
 import com.YammyEater.demo.repository.upload.TempResourceRepository;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 /*
@@ -51,6 +43,13 @@ public class LocalResourceUploadService implements ResourceUploadService {
     public void deleteResource(String key) {
         File deleteFile = new File(getRealPath(key));
         deleteFile.delete();
+    }
+
+    @Override
+    public void deleteResources(List<String> keys) {
+        for(String key : keys) {
+            deleteResource(key);
+        }
     }
 
     @Override

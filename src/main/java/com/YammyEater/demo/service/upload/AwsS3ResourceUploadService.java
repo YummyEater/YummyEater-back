@@ -62,4 +62,11 @@ public class AwsS3ResourceUploadService implements ResourceUploadService {
     public void deleteResource(String key) {
         amazonS3.deleteObject(bucketName, key);
     }
+
+    @Override
+    public void deleteResources(List<String> keys) {
+        for(String key : keys) {
+            amazonS3.deleteObject(bucketName, key);
+        }
+    }
 }
