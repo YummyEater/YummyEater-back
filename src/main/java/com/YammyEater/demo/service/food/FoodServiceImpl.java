@@ -30,6 +30,7 @@ import com.YammyEater.demo.repository.user.UserRepository;
 import com.YammyEater.demo.service.upload.ResourceUploadService;
 import com.YammyEater.demo.service.upload.TransactionResourceUploadService;
 import com.google.common.collect.Sets;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -54,7 +55,8 @@ public class FoodServiceImpl implements FoodService {
     private final UserRepository userRepository;
     private final FoodResourceRepository foodResourceRepository;
     private final TempResourceRepository tempResourceRepository;
-    private final ResourceUploadService resourceUploadService;
+
+    private final FoodResourceService foodResourceService;
     private final TransactionResourceUploadService transactionResourceUploadService;
 
     @Override
@@ -140,19 +142,10 @@ public class FoodServiceImpl implements FoodService {
 
         //업로드한 자원의 정보를 FoodResource로 저장
         if(foodRegisterRequest.resourceKeys() != null) {
-            for (String resourceKey : foodRegisterRequest.resourceKeys()) {
-                //자원 주소가 잘못되면 키가 null
-                //임시 업로드 자원 목록에 존재해야함
-                if(resourceKey == null || !tempResourceRepository.existsById(resourceKey)) {
-                    continue;
-                }
-                //FoodResource에 추가
-                foodResourceRepository.save(
-                        new FoodResource(resourceKey, food)
-                );
-                //임시 업로드 자원 목록에서 삭제
-                tempResourceRepository.deleteById(resourceKey);
-            }
+            foodResourceService.registerResources(
+                    food.getId(),
+                    foodRegisterRequest.resourceKeys()
+            );
         }
 
         //등록한 음식의 id 반환
@@ -196,12 +189,11 @@ public class FoodServiceImpl implements FoodService {
         foodTagRepository.deleteAllByFood(food);
 
         //연결된 자원 삭제
-        for(FoodResource foodResource : food.getFoodResources()) {
-            //파일을 삭제
-            transactionResourceUploadService.deleteResourceAsyncAfterCommit(foodResource.getKey());
-        }
-        //FoodResource 삭제
-        foodResourceRepository.deleteAllByFood(food);
+        foodResourceService.deleteResources(
+                food.getFoodResources().stream()
+                        .map(FoodResource::getKey)
+                        .collect(Collectors.toList())
+        );
 
         //food 삭제
         foodRepository.delete(food);
@@ -273,32 +265,7 @@ public class FoodServiceImpl implements FoodService {
             food.getArticle().setContent(foodModifyRequest.content());
         }
         if(foodModifyRequest.resourceKeys() != null) {
-            //기존에 등록되어 있던 FoodResource
-            Set<FoodResource> originalFoodResources = new HashSet<>(food.getFoodResources());
-            //새로 요청된 FoodResource
-            Set<FoodResource> newFoodResources = new HashSet<>();
-            for(String resourceKey : foodModifyRequest.resourceKeys()) {
-                if(resourceKey == null) {
-                    continue;
-                }
-                newFoodResources.add(
-                        new FoodResource(resourceKey, food)
-                );
-            }
-            //삭제할 자원
-            for(FoodResource foodResource : Sets.difference(originalFoodResources, newFoodResources)) {
-                foodResourceRepository.delete(foodResource);
-                transactionResourceUploadService.deleteResourceAsyncAfterCommit(foodResource.getKey());
-            }
-            //추가할 자원
-            for(FoodResource foodResource : Sets.difference(newFoodResources, originalFoodResources)) {
-                //TempResource에서 FoodResource로 옮김
-                //임시 업로드 자원 목록에 존재해야 추가 대상
-                if(tempResourceRepository.existsById(foodResource.getKey())) {
-                    foodResourceRepository.save(foodResource);
-                    tempResourceRepository.deleteById(foodResource.getKey());
-                }
-            }
+            foodResourceService.setResources(foodId, foodModifyRequest.resourceKeys());
         }
     }
 }
